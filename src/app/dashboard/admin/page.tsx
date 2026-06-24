@@ -78,7 +78,7 @@ export default async function AdminDashboard() {
               <div className="p-8 text-center text-gray-400">All stores approved</div>
             ) : (
               <div className="divide-y">
-                {pendingStores.map((store) => (
+                {pendingStores.map((store: { id: string; name: string; owner: { email: string } }) => (
                   <div key={store.id} className="p-4 flex justify-between items-center">
                     <div>
                       <p className="font-medium text-gray-800">{store.name}</p>
@@ -106,7 +106,7 @@ export default async function AdminDashboard() {
               <div className="p-8 text-center text-gray-400">No orders yet</div>
             ) : (
               <div className="divide-y">
-                {recentOrders.map((order) => (
+                {recentOrders.map((order: { id: string; product: { title: string }; buyer: { name: string }; totalAmount: number; commission: number }) => (
                   <div key={order.id} className="p-4 flex justify-between items-center">
                     <div>
                       <p className="font-medium text-gray-800">{order.product.title}</p>
