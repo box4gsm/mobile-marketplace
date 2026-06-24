@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  BUYER
+  SELLER
+  AGENT
+  ADMIN
+}
+
+enum ProductCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  store         Store?
+  orders        Order[]
+  agentActivity AgentActivity[]
+  assignedStore Store?   @relation("AgentStore", fields: [assignedStoreId], references: [id])
+  assignedStoreId String?
+}
+
+model Store {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  logo            String?
+  isActive        Boolean   @default(false)
+  stripeAccountId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  owner           User      @relation(fields: [ownerId], references: [id])
+  ownerId         String    @unique
+  products        Product[]
+  subscription    Subscription?
+  agents          User[]    @relation("AgentStore")
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  images      String[]
+  brand       String
+  model       String
+  storage     String?
+  condition   ProductCondition
+  isAvailable Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  store       Store    @relation(fields: [storeId], references: [id])
+  storeId     String
+  orders      Order[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  totalAmount Float
+  commission  Float
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  buyerId     String
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  plan                 String
+  priceMonthly         Float
+  commissionRate       Float
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  store    Store  @relation(fields: [storeId], references: [id])
+  storeId  String @unique
+}
+
+model AgentActivity {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  agent   User   @relation(fields: [agentId], references: [id])
+  agentId String
+}
